@@ -8,12 +8,19 @@ from pathlib import Path
 def check_file_exists(filename):
     if path.exists(filename):
         print('File exists')
+        return True
     else:
         print('File ({}) not found'.format(filename))
+        return False
 
 
 def check_file_exists_on_dir(directory, filename):
     return check_file_exists('{}/{}'.format(directory, filename))
+
+
+def delete_file(directory, filename):
+    print('File already existed -> deleting it')
+    os.remove('{}/{}'.format(directory, filename))
 
 
 # ./start-server -s /Users/ruitzei/Downloads/TP2-Intro-Distribuidos/Sarasa

@@ -22,11 +22,6 @@ def main():
     args = parse_arguments()
     server_address = (args.server_host, args.server_port)
 
-    # 1. Check if file to be uploaded exists.
-    check_file_exists(args.src)
-
-    # 2. Define what happens if the selecetd --name already exists on the server. Deletes old?
-
     if args.protocol == "tcp":
         upload_file_tcp(server_address, args.src, args.name)
     elif args.protocol == "udp":

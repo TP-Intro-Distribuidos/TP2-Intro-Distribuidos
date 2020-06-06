@@ -1,5 +1,7 @@
 import socket
 
+from utils.FileUtils import check_file_exists, check_file_exists_on_dir, delete_file
+
 CHUNK_SIZE = 1024
 
 def start_server(server_address, storage_dir):
@@ -17,12 +19,19 @@ def start_server(server_address, storage_dir):
 
         print("Accepted connection from {}".format(address))
 
-        filename = "{}/{}".format(storage_dir, connection.recv(CHUNK_SIZE).decode())
+        # Read server name and send "ACK"
+        filename = connection.recv(CHUNK_SIZE).decode()
+        connection.send(b'ack')
 
+        if check_file_exists_on_dir(storage_dir, filename):
+            # If file already exists => delete it
+            delete_file(storage_dir, filename)
+
+        # Prepare the file
         f = open(filename, "wb")
         bytes_received = 0
 
-
+        # Geting the size of the file and sending "ACK"
         size = int(connection.recv(CHUNK_SIZE).decode())
         connection.send(b'start')
 
@@ -38,6 +47,7 @@ def start_server(server_address, storage_dir):
 
         f.close()
 
+    print('Socket closed')
     sock.close()
 
     pass
