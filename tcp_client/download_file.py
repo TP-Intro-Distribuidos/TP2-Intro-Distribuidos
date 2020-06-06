@@ -23,8 +23,8 @@ def download_file(server_address, name, dst):
     size = int(sock.recv(CHUNK_SIZE).decode())
     sock.send(b'ack')
 
+    # parsing dir and filename
     dir_and_filename = get_dir_and_filename(dst)
-    print(dir_and_filename)
 
     # Prepare the file
     dir = dir_and_filename[0]
@@ -34,14 +34,12 @@ def download_file(server_address, name, dst):
     f = open('{}/{}'.format(dir, filename), "wb")
     bytes_received = 0
 
-    #IM OPENING THE FILE, MAYBE I SHOULD DELETE IF ALREADY EXISTS
-    print('after open file')
+    # TODO: check what to do if file exists.
     while bytes_received < size:
         data = sock.recv(CHUNK_SIZE)
         bytes_received += len(data)
         f.write(data)
 
-    print('after download')
     # Send number of bytes received
     sock.send(str(bytes_received).encode())
 

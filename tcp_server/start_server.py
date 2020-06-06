@@ -52,7 +52,6 @@ def start_download(connection, storage_dir):
         connection.send(str(size).encode())
         connection.recv(CHUNK_SIZE)
 
-        print('beofre while true')
         # Start sending the file to the client
         while True:
             chunk = f.read(CHUNK_SIZE)
