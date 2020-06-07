@@ -31,3 +31,7 @@ def create_directory(directory):
     Path(directory).mkdir(parents=True, exist_ok=True)
 
     print('Directory ({}) created successfully'.format(directory))
+
+
+def get_dir_and_filename(user_path):
+    return os.path.dirname(user_path), os.path.basename(user_path)
