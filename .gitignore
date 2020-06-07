@@ -2,3 +2,5 @@ __pycache__
 .vscode
 .idea
 TP2-Intro-Distribuidos.iml
+*.txt
+storage

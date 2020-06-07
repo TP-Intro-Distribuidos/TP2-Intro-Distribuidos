@@ -1,5 +1,4 @@
 import socket
-import os
 
 import utils.ActionType as ActionType
 from utils.FileUtils import create_directory, get_dir_and_filename
@@ -8,6 +7,7 @@ CHUNK_SIZE = 1024
 
 
 def download_file(server_address, name, dst):
+    print("Download tcp")
     # Create socket and connect to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(server_address)
