@@ -43,7 +43,7 @@ def start_download(connection, storage_dir):
     file_name = connection.recv(CHUNK_SIZE).decode()
 
     if check_file_exists_on_dir(storage_dir, file_name):
-        f = open(file_name, "rb")
+        f = open("{}/{}".format(storage_dir, file_name), "rb")
         f.seek(0, os.SEEK_END)
         size = f.tell()
         f.seek(0, os.SEEK_SET)
@@ -62,10 +62,10 @@ def start_download(connection, storage_dir):
         # Recv amount of data received by the server
         num_bytes = connection.recv(CHUNK_SIZE)
         print("Client received {} bytes".format(num_bytes.decode()))
+        f.close()
     else:
         print('FILE NOT FOUND')
 
-    f.close()
 
 
 def start_upload(connection, storage_dir):
@@ -78,7 +78,7 @@ def start_upload(connection, storage_dir):
         delete_file(storage_dir, filename)
 
     # Prepare the file
-    f = open(filename, "wb")
+    f = open("{}/{}".format(storage_dir, filename), "wb")
     bytes_received = 0
 
     # Geting the size of the file and sending "ACK"
