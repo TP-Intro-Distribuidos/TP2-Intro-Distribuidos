@@ -1,6 +1,7 @@
 import socket
 import os
 import utils.ActionType as ActionType
+from socket import error as SocketError
 
 from utils.FileUtils import check_file_exists, check_file_exists_on_dir, delete_file
 
@@ -57,16 +58,21 @@ def start_download(connection, storage_dir):
             chunk = f.read(CHUNK_SIZE)
             if not chunk:
                 break
-            connection.send(chunk)
+
+            # Send the data chunk by chunk and handle a socket connection error.
+            try:
+                connection.send(chunk)
+            except SocketError as e:
+                close_connection(connection)
+                return
 
         # Recv amount of data received by the server
         num_bytes = connection.recv(CHUNK_SIZE)
         print("Client received {} bytes".format(num_bytes.decode()))
         f.close()
     else:
-        print('FILE NOT FOUND')
-
-
+        print('No se encontró el archivo en el servidor -> Cerrando conexión')
+        close_connection(connection)
 
 def start_upload(connection, storage_dir):
     # Read server name and send "ACK"
@@ -87,6 +93,13 @@ def start_upload(connection, storage_dir):
 
     while bytes_received < size:
         data = connection.recv(CHUNK_SIZE)
+
+        # Getting an empty byte means that the connection was closed by the client => delete file and close socket.
+        if data == b'':
+            close_connection(connection)
+            close_file(f)
+            return
+
         bytes_received += len(data)
         f.write(data)
 
@@ -96,3 +109,12 @@ def start_upload(connection, storage_dir):
     connection.send(str(bytes_received).encode())
 
     f.close()
+
+
+def close_file(f):
+    f.close()
+    os.remove(f.name)
+
+
+def close_connection(connection):
+    connection.close()

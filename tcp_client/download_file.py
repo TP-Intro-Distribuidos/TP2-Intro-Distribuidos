@@ -7,7 +7,7 @@ CHUNK_SIZE = 1024
 
 
 def download_file(server_address, name, dst):
-    print("Download tcp")
+    print('TCP: download_file({}, {}, {})'.format(server_address, name, dst))
     # Create socket and connect to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(server_address)
@@ -19,8 +19,15 @@ def download_file(server_address, name, dst):
     # Tell the server the file name
     sock.send(name.encode())
 
+    # After telling the server the file name, he might close our connection
+    size_or_finish = sock.recv(CHUNK_SIZE)
+    if size_or_finish == b'':
+        print('No existe el archivo en el servidor')
+        sock.close()
+        return
+
     # Reading the size and sending ACK
-    size = int(sock.recv(CHUNK_SIZE).decode())
+    size = int(size_or_finish.decode())
     sock.send(b'ack')
 
     # parsing dir and filename
@@ -34,7 +41,6 @@ def download_file(server_address, name, dst):
     f = open('{}/{}'.format(dir, filename), "wb")
     bytes_received = 0
 
-    # TODO: check what to do if file exists.
     while bytes_received < size:
         data = sock.recv(CHUNK_SIZE)
         bytes_received += len(data)
@@ -46,5 +52,6 @@ def download_file(server_address, name, dst):
     print("Received file {}".format(name))
 
     f.close()
+    sock.close()
 
     pass
