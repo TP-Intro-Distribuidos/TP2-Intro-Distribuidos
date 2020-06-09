@@ -44,7 +44,7 @@ def upload(sock, address, storage_dir, file_info):
     chunks = {}  # TODO: tal vez con una lista inicializada es mas performante? habría que ver, porque insert(at) tenes que ir a memoria todo el tiempo?
     while len(chunks) < int(number_of_chunks):
         # TODO: si el cliente deja de responder que no se trabe aca para siempre
-        response, addr = sock.recvfrom(UDP_CHUNK_SIZE)
+        response, addr = sock.recvfrom(UDP_CHUNK_SIZE * 4)
         print("Received {} bytes".format(len(response)))
         chunk_id, chunk = response.decode().split(DELIMITER, 1)
         if not chunk_id.isdigit():

@@ -8,7 +8,7 @@ from utils.MessagingUtils import UDP_CHUNK_SIZE, send_message, DELIMITER
 def upload_file(server_address, src, name):
     print('UDP: upload_file({}, {}, {})'.format(server_address, src, name))
 
-    file = open(src, "rb")
+    file = open(src, "r")
     file.seek(0, os.SEEK_END)
     size = file.tell()
     file.seek(0, os.SEEK_SET)
@@ -44,10 +44,10 @@ def break_file_into_chunks(file):
     chunk_id = 0
     while True:
         header = str(chunk_id) + DELIMITER
-        chunk = file.read(UDP_CHUNK_SIZE - len(header.encode('utf-8')))
+        chunk = file.read(UDP_CHUNK_SIZE - len(header))
         if not chunk:
             break
-        chunks[chunk_id] = header + chunk.decode()
+        chunks[chunk_id] = header + chunk
         chunk_id += 1
 
     return chunks
