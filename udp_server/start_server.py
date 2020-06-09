@@ -1,7 +1,10 @@
 import socket
-from utils.FileUtils import check_file_exists, check_file_exists_on_dir, delete_file
+from math import ceil
 
-CHUNK_SIZE = 1024
+from utils.ActionType import ActionType
+from utils.MessagingUtils import UDP_CHUNK_SIZE, send_message, DELIMITER
+from utils.FileUtils import check_file_exists_on_dir, delete_file
+
 
 def start_server(server_address, storage_dir):
     print('UDP: start_server({}, {})'.format(server_address, storage_dir))
@@ -11,39 +14,55 @@ def start_server(server_address, storage_dir):
     sock.bind(server_address)
 
     while True:
-        # Read server name and send "ACK"
-        filename, address = sock.recvfrom(CHUNK_SIZE)
-        print("Filename: {}".format(filename.decode()))
-        sock.sendto(b'ack', address)
+        sock.settimeout(None)
+        message, address = sock.recvfrom(UDP_CHUNK_SIZE)
+        message = message.decode()
+        print("Received request from {} to perform {}".format(address, message))
+        command, file_info = message.split(DELIMITER, 1)
 
-        if check_file_exists_on_dir(storage_dir, filename):
-            # If file already exists => delete it
-            delete_file(storage_dir, filename)
-
-        # Prepare the file
-        f = open(filename, "wb")
-        bytes_received = 0
-
-        # Get the size of the file and send "ACK"
-        data, address = sock.recvfrom(CHUNK_SIZE)
-        size = int(data.decode())
-        print("Incoming file with size {} from {}".format(size, address))
-        sock.sendto(b'start', address)
-
-        # Get file content
-        while bytes_received < size:
-            data, addr = sock.recvfrom(CHUNK_SIZE)
-            bytes_received += len(data)
-            f.write(data)
-
-        print("Received file {}".format(filename))
-
-        # Send number of bytes received
-        sock.sendto(str(bytes_received).encode(), address)
-
-        f.close()
+        if command == ActionType.UPLOAD.value:
+            upload(sock, address, storage_dir, file_info)
+        elif command == ActionType.DOWNLOAD.value:
+            download(sock, address)
+        else:
+            print("Command {} not recognized".format(command))
+            continue
 
     print('Socket closed')
     sock.close()
 
+
+def download(sock, address):
     pass
+
+
+def upload(sock, address, storage_dir, file_info):
+    size, filename = file_info.split(DELIMITER)
+    size = int(size)
+    print("Requested upload for file {} with size {}".format(filename, size))
+    sock.sendto(ActionType.BEGIN_UPLOAD.value.encode(), address)
+
+    number_of_chunks = ceil(size / UDP_CHUNK_SIZE)
+    chunks = {}  # TODO: tal vez con una lista inicializada es mas performante? habría que ver, porque insert(at) tenes que ir a memoria todo el tiempo?
+    while len(chunks) < number_of_chunks:
+        # TODO: si el cliente deja de responder que no se trabe aca para siempre
+        response, addr = sock.recvfrom(UDP_CHUNK_SIZE)
+        chunk_id, chunk = response.decode().split(DELIMITER, 1)
+        print("Received chunk with id {}".format(chunk_id))
+        if not chunk_id.isdigit():
+            return
+        # Send ack (we do not care if chunk is new or repeated for ack)
+        sock.sendto(chunk_id.encode(), address)
+        if chunk_id not in chunks:
+            chunks[chunk_id] = chunk
+
+    if check_file_exists_on_dir(storage_dir, filename):
+        # If file already exists => delete it
+        delete_file(storage_dir, filename)
+
+    # Prepare the file
+    file = open(storage_dir + "/" + filename, "w")
+    size = len(chunks)
+    for i in range(size):
+        file.write(chunks[str(i)])
+    file.close()
