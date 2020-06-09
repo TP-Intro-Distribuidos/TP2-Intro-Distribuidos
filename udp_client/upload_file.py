@@ -17,20 +17,21 @@ def upload_file(server_address, src, name):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(2)
 
+    chunks = break_file_into_chunks(file)
+
     print("Sending upload command")
     # Send upload command and wait for response
-    response = send_message(sock, server_address, ActionType.UPLOAD.value + DELIMITER + str(size) + DELIMITER + name)
+    response = send_message(sock, server_address, ActionType.UPLOAD.value + DELIMITER + str(len(chunks)) + DELIMITER + name)
     if response == ActionType.BEGIN_UPLOAD.value:
         print("Sending {} bytes from {}".format(size, src))
-        transfer_file(sock, server_address, file)
+        transfer_file(sock, server_address, chunks)
     else:
         print('Upload failed. Retry')
 
     sock.close()
 
 
-def transfer_file(sock, address, file):
-    chunks = break_file_into_chunks(file)
+def transfer_file(sock, address, chunks):
     for i in range(len(chunks)):
         response = send_message(sock, address, chunks[i])
         if response is None:

@@ -37,14 +37,12 @@ def download(sock, address):
 
 
 def upload(sock, address, storage_dir, file_info):
-    size, filename = file_info.split(DELIMITER)
-    size = int(size)
-    print("Requested upload for file {} with size {}".format(filename, size))
+    number_of_chunks, filename = file_info.split(DELIMITER)
+    print("Requested upload for file {} with {} chunks".format(filename, number_of_chunks))
     sock.sendto(ActionType.BEGIN_UPLOAD.value.encode(), address)
 
-    number_of_chunks = ceil(size / UDP_CHUNK_SIZE)
     chunks = {}  # TODO: tal vez con una lista inicializada es mas performante? habría que ver, porque insert(at) tenes que ir a memoria todo el tiempo?
-    while len(chunks) < number_of_chunks:
+    while len(chunks) < int(number_of_chunks):
         # TODO: si el cliente deja de responder que no se trabe aca para siempre
         response, addr = sock.recvfrom(UDP_CHUNK_SIZE)
         chunk_id, chunk = response.decode().split(DELIMITER, 1)
