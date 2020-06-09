@@ -4,7 +4,7 @@ import os
 import utils.ActionType as ActionType
 
 CHUNK_SIZE = 1024
-
+MAX_TIMEOUTS = 5
 
 def upload_file(server_address, src, name):
     print('TCP: upload_file({}, {}, {})'.format(server_address, src, name))
@@ -16,7 +16,13 @@ def upload_file(server_address, src, name):
 
     # Create socket and connect to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(server_address)
+    sock.settimeout(2)
+    try:
+        sock.connect(server_address)
+    except socket.error:
+        print("Error. Connection refused")
+        return None
+    sock.settimeout(None)
 
     # Tell the server we want to start an UPLOAD
     sock.send(ActionType.ActionType.UPLOAD.value.encode())
