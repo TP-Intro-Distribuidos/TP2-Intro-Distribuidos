@@ -45,8 +45,8 @@ def upload(sock, address, storage_dir, file_info):
     while len(chunks) < int(number_of_chunks):
         # TODO: si el cliente deja de responder que no se trabe aca para siempre
         response, addr = sock.recvfrom(UDP_CHUNK_SIZE)
+        print("Received {} bytes".format(len(response)))
         chunk_id, chunk = response.decode().split(DELIMITER, 1)
-        print("Received chunk with id {}".format(chunk_id))
         if not chunk_id.isdigit():
             return
         # Send ack (we do not care if chunk is new or repeated for ack)

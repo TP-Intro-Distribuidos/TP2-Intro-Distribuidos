@@ -2,15 +2,16 @@ from socket import timeout
 
 UDP_CHUNK_SIZE = 1024
 MAX_TIMEOUTS = 5
-DELIMITER = "-"
+DELIMITER = "|"
 
 
 def send_message(sock, address, message):
     original_timeout = sock.gettimeout()
     sock.settimeout(2)
     for x in range(MAX_TIMEOUTS):
-        print("Sending {} to {}".format(message.encode(), address))
-        sock.sendto(message.encode(), address)
+        #print("Sending {} to {}".format(message, address))
+        bytes = sock.sendto(message, address)
+        print("bytes sent {}".format(bytes))
         try:
             response, addr = sock.recvfrom(UDP_CHUNK_SIZE)
             return response.decode()
