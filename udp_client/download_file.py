@@ -4,6 +4,7 @@ import utils.ActionType as ActionType
 
 from utils.ActionType import ActionType
 from utils.MessagingUtils import send_message, DELIMITER, UDP_CHAR_LIMIT
+from utils.FileUtils import create_directory, get_dir_and_filename
 
 
 def download_file(server_address, name, dst):
@@ -32,8 +33,14 @@ def download_file(server_address, name, dst):
             if chunk_id not in chunks:
                 chunks[chunk_id] = chunk
 
+        # parsing dir and filename
+        dir_and_filename = get_dir_and_filename(dst)
+
         # Prepare the file
-        file = open(dst, "w")
+        dir = dir_and_filename[0]
+        filename = dir_and_filename[1]
+        create_directory(dir)
+        file = open('{}/{}'.format(dir, filename), "w")
         size = len(chunks)
         for i in range(size):
             file.write(chunks[str(i)])
