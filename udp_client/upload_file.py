@@ -1,29 +1,22 @@
 import socket
-import os
 
 from utils.ActionType import ActionType
-from utils.MessagingUtils import UDP_CHUNK_SIZE, send_message, DELIMITER
+from utils.MessagingUtils import UDP_CHAR_LIMIT, send_message, DELIMITER
 
 
 def upload_file(server_address, src, name):
     print('UDP: upload_file({}, {}, {})'.format(server_address, src, name))
 
-    file = open(src, "r")
-    file.seek(0, os.SEEK_END)
-    size = file.tell()
-    file.seek(0, os.SEEK_SET)
-
     # Create socket and connect to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(2)
 
-    chunks = break_file_into_chunks(file)
+    chunks = break_file_into_chunks(src)
 
     print("Sending upload command")
     # Send upload command and wait for response
     response = send_message(sock, server_address, (ActionType.UPLOAD.value + DELIMITER + str(len(chunks)) + DELIMITER + name).encode())
     if response == ActionType.BEGIN_UPLOAD.value:
-        print("Sending {} bytes from {}".format(size, src))
+        print("Sending {} chunks from {}".format(len(chunks), src))
         transfer_file(sock, server_address, chunks)
     else:
         print('Upload failed. Retry')
@@ -39,12 +32,13 @@ def transfer_file(sock, address, chunks):
             break
 
 
-def break_file_into_chunks(file):
+def break_file_into_chunks(filename):
+    file = open(filename, "r")
     chunks = {}
     chunk_id = 0
     while True:
         header = str(chunk_id) + DELIMITER
-        chunk = file.read(UDP_CHUNK_SIZE - len(header))
+        chunk = file.read(UDP_CHAR_LIMIT - len(header))
         if not chunk:
             break
         chunks[chunk_id] = header + chunk
