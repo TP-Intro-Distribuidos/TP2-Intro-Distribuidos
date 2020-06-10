@@ -28,7 +28,7 @@ def download_file(server_address, name, dst):
     # After telling the server the file name, he might close our connection
     size_or_finish = sock.recv(CHUNK_SIZE)
     if size_or_finish == b'':
-        print('No existe el archivo en el servidor')
+        print('File not found on server')
         sock.close()
         return
 
