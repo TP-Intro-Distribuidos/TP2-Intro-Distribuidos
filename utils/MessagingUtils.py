@@ -5,7 +5,7 @@ MAX_TIMEOUTS = 10
 DELIMITER = "|"
 
 
-def send_message(sock, address, message):
+def send_message_with_retries(sock, address, message):
     original_timeout = sock.gettimeout()
     sock.settimeout(0.5)
     for x in range(MAX_TIMEOUTS):
@@ -15,11 +15,30 @@ def send_message(sock, address, message):
             sock.settimeout(original_timeout)
             return response.decode()
         except timeout:
-            print('Socket timed out while sending message. Attempt {} of {}'.format(x + 1, MAX_TIMEOUTS))
             continue
-    print('All {} retry attempts were exhausted'.format(MAX_TIMEOUTS))
+    print('All {} retry attempts were exhausted to send message {}'.format(MAX_TIMEOUTS, message))
     sock.settimeout(original_timeout)
     return None
+
+
+def receive_chunks(sock, address, number_of_chunks):
+    chunks = {}
+    while len(chunks) < int(number_of_chunks):
+        # TODO: si el cliente deja de responder que no se trabe aca para siempre
+        response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
+        try:
+            chunk_id, chunk = response.decode().split(DELIMITER, 1)
+        except ValueError:
+            print("Could not parse data chunk. Maybe it got corrupted. Message was {}".format(response))
+            continue
+        if not chunk_id.isdigit():
+            print("Parsed a chunk id that was not numeric. Skipping chunk. Chunk id was {}".format(response))
+            return
+        # Send ack (we do not care if chunk is new or repeated for ack)
+        sock.sendto(chunk_id.encode(), address)
+        if chunk_id not in chunks:
+            chunks[chunk_id] = chunk
+    return chunks
 
 
 def break_file_into_chunks(filepath):
@@ -33,13 +52,12 @@ def break_file_into_chunks(filepath):
             break
         chunks[chunk_id] = header + chunk
         chunk_id += 1
-
     return chunks
 
 
 def transfer_file(sock, address, chunks):
     for i in range(len(chunks)):
-        response = send_message(sock, address, chunks[i].encode())
+        response = send_message_with_retries(sock, address, chunks[i].encode())
         if response is None:
-            print("problem transferring chunks to {}".format(address))
+            print("There was a problem transferring chunks to {}".format(address))
             break

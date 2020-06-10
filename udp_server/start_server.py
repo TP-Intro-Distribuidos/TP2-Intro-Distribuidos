@@ -1,7 +1,7 @@
 import socket
 
 from utils.ActionType import ActionType
-from utils.MessagingUtils import UDP_CHAR_LIMIT, DELIMITER, break_file_into_chunks, transfer_file
+from utils.MessagingUtils import UDP_CHAR_LIMIT, DELIMITER, break_file_into_chunks, transfer_file, receive_chunks
 from utils.FileUtils import check_file_exists_on_dir, delete_file
 
 
@@ -14,39 +14,37 @@ def start_server(server_address, storage_dir):
 
     while True:
         sock.settimeout(None)
-        message, address = sock.recvfrom(UDP_CHAR_LIMIT)
+        message, client_address = sock.recvfrom(UDP_CHAR_LIMIT)
         message = message.decode()
-        print("Received request from {} to perform {}".format(address, message))
-        command, file_info = message.split(DELIMITER, 1)
+        print("Received request from {} to perform {}".format(client_address, message))
+        try:
+            command, file_info = message.split(DELIMITER, 1)
+        except ValueError:
+            print("Received unrecognized message from client with address {}. Message was {}".format(client_address, message))
+            continue
 
         if command == ActionType.UPLOAD.value:
-            upload(sock, address, storage_dir, file_info)
+            upload(sock, client_address, storage_dir, file_info)
         elif command == ActionType.DOWNLOAD.value:
-            download(sock, address, storage_dir, file_info)
+            download(sock, client_address, storage_dir, file_info)
         else:
             print("Command {} not recognized".format(command))
             continue
 
-    print('Socket closed')
     sock.close()
 
 
 def upload(sock, address, storage_dir, file_info):
-    number_of_chunks, filename = file_info.split(DELIMITER)
-    print("Requested upload for file {} with {} chunks".format(filename, number_of_chunks))
+    try:
+        number_of_chunks, filename = file_info.split(DELIMITER)
+    except ValueError:
+        print("Download request header had wrong format, Header was {}".format(file_info))
+        return
+
+    print("Received an upload request for file {} with {} chunks".format(filename, number_of_chunks))
     sock.sendto(ActionType.BEGIN_UPLOAD.value.encode(), address)
 
-    chunks = {}  # TODO: tal vez con una lista inicializada es mas performante? habría que ver, porque insert(at) tenes que ir a memoria todo el tiempo?
-    while len(chunks) < int(number_of_chunks):
-        # TODO: si el cliente deja de responder que no se trabe aca para siempre
-        response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
-        chunk_id, chunk = response.decode().split(DELIMITER, 1)
-        if not chunk_id.isdigit():
-            return
-        # Send ack (we do not care if chunk is new or repeated for ack)
-        sock.sendto(chunk_id.encode(), address)
-        if chunk_id not in chunks:
-            chunks[chunk_id] = chunk
+    chunks = receive_chunks(sock, address, number_of_chunks)
 
     if check_file_exists_on_dir(storage_dir, filename):
         # If file already exists => delete it
