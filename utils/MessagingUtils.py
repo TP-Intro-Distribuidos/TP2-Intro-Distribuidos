@@ -60,4 +60,5 @@ def transfer_file(sock, address, chunks):
         response = send_message_with_retries(sock, address, chunks[i].encode())
         if response is None:
             print("There was a problem transferring chunks to {}".format(address))
-            break
+            return False
+    return True

@@ -74,5 +74,5 @@ def download(sock, address, storage_dir, file_info):
     chunks = break_file_into_chunks(storage_dir + "/" + filename)
     sock.sendto((ActionType.BEGIN_DOWNLOAD.value + DELIMITER + str(len(chunks))).encode(), address)
 
-    transfer_file(sock, address, chunks)
-    print("Download completed:", filename)
+    if transfer_file(sock, address, chunks):
+        print("Download completed:", filename)
