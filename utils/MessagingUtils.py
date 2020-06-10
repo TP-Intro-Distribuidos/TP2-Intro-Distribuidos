@@ -1,13 +1,13 @@
 from socket import timeout
 
 UDP_CHAR_LIMIT = 1024
-MAX_TIMEOUTS = 5
+MAX_TIMEOUTS = 10
 DELIMITER = "|"
 
 
 def send_message(sock, address, message):
     original_timeout = sock.gettimeout()
-    sock.settimeout(0.1)
+    sock.settimeout(0.5)
     for x in range(MAX_TIMEOUTS):
         #print("Sending {} to {}".format(message, address))
         bytes = sock.sendto(message, address)
