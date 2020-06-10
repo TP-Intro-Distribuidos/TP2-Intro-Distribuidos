@@ -1,14 +1,15 @@
 from socket import timeout
 
 UDP_CHAR_LIMIT = 1024
-MAX_TIMEOUTS = 10
+MAX_SEND_TIMEOUTS = 10
+MAX_RECEIVE_TIMEOUTS = 3
 DELIMITER = "|"
 
 
 def send_message_with_retries(sock, address, message):
     original_timeout = sock.gettimeout()
     sock.settimeout(0.5)
-    for x in range(MAX_TIMEOUTS):
+    for x in range(MAX_SEND_TIMEOUTS):
         sock.sendto(message, address)
         try:
             response, addr = sock.recvfrom(UDP_CHAR_LIMIT)
@@ -16,28 +17,33 @@ def send_message_with_retries(sock, address, message):
             return response.decode()
         except timeout:
             continue
-    print('All {} retry attempts were exhausted to send message {}'.format(MAX_TIMEOUTS, message))
+    print('All {} retry attempts were exhausted to send message {}'.format(MAX_SEND_TIMEOUTS, message))
     sock.settimeout(original_timeout)
     return None
 
 
 def receive_chunks(sock, address, number_of_chunks):
+    original_timeout = sock.gettimeout()
+    sock.settimeout(5)
     chunks = {}
     while len(chunks) < int(number_of_chunks):
-        # TODO: si el cliente deja de responder que no se trabe aca para siempre
-        response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
         try:
+            response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
             chunk_id, chunk = response.decode().split(DELIMITER, 1)
         except ValueError:
-            print("Could not parse data chunk. Maybe it got corrupted. Message was {}".format(response))
+            print("Could not parse data chunk. Maybe it got corrupted. Message was {}".format(response.decode()))
             continue
+        except timeout:
+            print("Stopped receiving data from client. Aborting reception.")
+            break
         if not chunk_id.isdigit():
-            print("Parsed a chunk id that was not numeric. Skipping chunk. Chunk id was {}".format(response))
+            print("Parsed a chunk id that was not numeric. Aborting reception. Chunk id was {}".format(response))
             return
         # Send ack (we do not care if chunk is new or repeated for ack)
         sock.sendto(chunk_id.encode(), address)
         if chunk_id not in chunks:
             chunks[chunk_id] = chunk
+    sock.settimeout(original_timeout)
     return chunks
 
 

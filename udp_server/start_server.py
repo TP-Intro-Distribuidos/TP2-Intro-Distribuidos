@@ -50,7 +50,7 @@ def upload(sock, address, storage_dir, file_info):
         # If file already exists => delete it
         delete_file(storage_dir, filename)
 
-    # Prepare the file
+    print("Preparing to write file {}".format(filename))
     file = open(storage_dir + "/" + filename, "w")
     size = len(chunks)
     for i in range(size):
@@ -64,9 +64,9 @@ def download(sock, address, storage_dir, file_info):
 
     if not check_file_exists_on_dir(storage_dir, filename):
         print("Specified file {} does not exist".format(filename))
+        sock.sendto((ActionType.FILE_NOT_FOUND.value + DELIMITER + str(1)).encode(), address)
         return
 
-    print("Sending download command")
     chunks = break_file_into_chunks(storage_dir + "/" + filename)
     sock.sendto((ActionType.BEGIN_DOWNLOAD.value + DELIMITER + str(len(chunks))).encode(), address)
 
