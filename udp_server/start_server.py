@@ -1,7 +1,7 @@
 import socket
 
 from utils.ActionType import ActionType
-from utils.MessagingUtils import UDP_CHAR_LIMIT, DELIMITER, send_message
+from utils.MessagingUtils import UDP_CHAR_LIMIT, DELIMITER, break_file_into_chunks, transfer_file
 from utils.FileUtils import check_file_exists_on_dir, delete_file
 
 
@@ -40,7 +40,6 @@ def upload(sock, address, storage_dir, file_info):
     while len(chunks) < int(number_of_chunks):
         # TODO: si el cliente deja de responder que no se trabe aca para siempre
         response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
-        print("Received {} bytes".format(len(response)))
         chunk_id, chunk = response.decode().split(DELIMITER, 1)
         if not chunk_id.isdigit():
             return
@@ -74,26 +73,3 @@ def download(sock, address, storage_dir, file_info):
     sock.sendto((ActionType.BEGIN_DOWNLOAD.value + DELIMITER + str(len(chunks))).encode(), address)
 
     transfer_file(sock, address, chunks)
-
-
-def transfer_file(sock, address, chunks):
-    for i in range(len(chunks)):
-        response = send_message(sock, address, chunks[i].encode())
-        if response is None:
-            print("problem transferring file to client")
-            break
-
-
-def break_file_into_chunks(filepath):
-    file = open(filepath, "r")
-    chunks = {}
-    chunk_id = 0
-    while True:
-        header = str(chunk_id) + DELIMITER
-        chunk = file.read(UDP_CHAR_LIMIT - len(header))
-        if not chunk:
-            break
-        chunks[chunk_id] = header + chunk
-        chunk_id += 1
-
-    return chunks

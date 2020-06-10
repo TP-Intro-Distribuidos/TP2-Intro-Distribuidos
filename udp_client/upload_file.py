@@ -1,7 +1,7 @@
 import socket
 
 from utils.ActionType import ActionType
-from utils.MessagingUtils import UDP_CHAR_LIMIT, send_message, DELIMITER
+from utils.MessagingUtils import send_message, DELIMITER, break_file_into_chunks, transfer_file
 
 
 def upload_file(server_address, src, name):
@@ -23,25 +23,3 @@ def upload_file(server_address, src, name):
 
     sock.close()
 
-
-def transfer_file(sock, address, chunks):
-    for i in range(len(chunks)):
-        response = send_message(sock, address, chunks[i].encode())
-        if response is None:
-            print("problem uploading file")
-            break
-
-
-def break_file_into_chunks(filename):
-    file = open(filename, "r")
-    chunks = {}
-    chunk_id = 0
-    while True:
-        header = str(chunk_id) + DELIMITER
-        chunk = file.read(UDP_CHAR_LIMIT - len(header))
-        if not chunk:
-            break
-        chunks[chunk_id] = header + chunk
-        chunk_id += 1
-
-    return chunks
