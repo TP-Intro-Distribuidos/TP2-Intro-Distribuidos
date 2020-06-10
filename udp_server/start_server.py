@@ -55,6 +55,8 @@ def upload(sock, address, storage_dir, file_info):
     size = len(chunks)
     for i in range(size):
         file.write(chunks[str(i)])
+
+    print("File upload completed:", filename)
     file.close()
 
 
@@ -64,6 +66,8 @@ def download(sock, address, storage_dir, file_info):
 
     if not check_file_exists_on_dir(storage_dir, filename):
         print("Specified file {} does not exist".format(filename))
+        # Sending a NOTFOUND message to close the connection.
+        sock.sendto('NOTFOUND'.encode(), address)
         return
 
     print("Sending download command")
@@ -71,3 +75,4 @@ def download(sock, address, storage_dir, file_info):
     sock.sendto((ActionType.BEGIN_DOWNLOAD.value + DELIMITER + str(len(chunks))).encode(), address)
 
     transfer_file(sock, address, chunks)
+    print("Download completed:", filename)

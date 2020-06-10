@@ -29,4 +29,4 @@ def upload_file(server_address, src, name):
             print('File upload failed: received unknown response from server to the upload command. Response was {}'.format(response))
 
     sock.close()
-
+    print("Upload completed: ", name)
