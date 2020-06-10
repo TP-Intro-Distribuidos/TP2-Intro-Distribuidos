@@ -5,12 +5,7 @@ from pathlib import Path
 
 
 def check_file_exists(filename):
-    if path.exists(filename):
-        print('File exists')
-        return True
-    else:
-        print('File ({}) not found'.format(filename))
-        return False
+    return path.exists(filename)
 
 
 def check_file_exists_on_dir(directory, filename):

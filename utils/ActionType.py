@@ -7,3 +7,5 @@ class ActionType(Enum):
     BEGIN_UPLOAD = 'begin upload'
     BEGIN_DOWNLOAD = 'begin download'
     FILE_NOT_FOUND = 'file not found'
+    TRANSFER_COMPLETE = 'transfer complete'
+    DATA = 'data'

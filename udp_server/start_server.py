@@ -46,6 +46,10 @@ def upload(sock, address, storage_dir, file_info):
 
     chunks = receive_chunks(sock, address, number_of_chunks)
 
+    if chunks is None:
+        print("There was a problem receiving the file.")
+        return
+
     if check_file_exists_on_dir(storage_dir, filename):
         # If file already exists => delete it
         delete_file(storage_dir, filename)
@@ -73,4 +77,6 @@ def download(sock, address, storage_dir, file_info):
     sock.sendto((ActionType.BEGIN_DOWNLOAD.value + DELIMITER + str(len(chunks))).encode(), address)
 
     if transfer_file(sock, address, chunks):
-        print("Download completed:", filename)
+        print("Download completed for file {}".format(filename))
+    else:
+        print("Download failed")

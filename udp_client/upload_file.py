@@ -22,10 +22,10 @@ def upload_file(server_address, src, name):
             print('Server failed to respond to upload request. Check if server is actually online and retry.')
         elif response == ActionType.BEGIN_UPLOAD.value:
             print("Sending {} chunks from {}".format(len(chunks), src))
-            print(datetime.now())
             if transfer_file(sock, server_address, chunks):
-                print("Upload completed: ", name)
-            print(datetime.now())
+                print("Upload completed for file {}".format(name))
+            else:
+                print("Upload failed.")
         else:
             print('File upload failed: received unknown response from server to the upload command. Response was {}'.format(response))
 
