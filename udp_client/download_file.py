@@ -35,7 +35,6 @@ def download_file(server_address, name, dst):
                 print("There was a problem receiving the file.")
                 sock.close()
                 return
-
             # parsing dir and filename
             dir_and_filename = get_dir_and_filename(dst)
 
