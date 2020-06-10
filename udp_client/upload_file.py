@@ -1,4 +1,5 @@
 import socket
+from datetime import datetime
 
 from utils.ActionType import ActionType
 from utils.MessagingUtils import send_message, DELIMITER, break_file_into_chunks, transfer_file
@@ -17,7 +18,9 @@ def upload_file(server_address, src, name):
     response = send_message(sock, server_address, (ActionType.UPLOAD.value + DELIMITER + str(len(chunks)) + DELIMITER + name).encode())
     if response == ActionType.BEGIN_UPLOAD.value:
         print("Sending {} chunks from {}".format(len(chunks), src))
+        print(datetime.now())
         transfer_file(sock, server_address, chunks)
+        print(datetime.now())
     else:
         print('Upload failed. Retry')
 
