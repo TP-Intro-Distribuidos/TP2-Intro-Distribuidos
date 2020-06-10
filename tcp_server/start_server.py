@@ -71,7 +71,7 @@ def start_download(connection, storage_dir):
         print("Client received {} bytes".format(num_bytes.decode()))
         f.close()
     else:
-        print('No se encontró el archivo en el servidor -> Cerrando conexión')
+        print('File not found in server -> Closing connection')
         close_connection(connection)
 
 def start_upload(connection, storage_dir):
