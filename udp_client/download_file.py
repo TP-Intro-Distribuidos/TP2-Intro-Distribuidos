@@ -1,7 +1,5 @@
 import socket
 
-import utils.ActionType as ActionType
-
 from utils.ActionType import ActionType
 from utils.MessagingUtils import send_message_with_retries, DELIMITER, UDP_CHAR_LIMIT, receive_chunks
 from utils.FileUtils import create_directory, get_dir_and_filename
@@ -48,4 +46,6 @@ def download_file(server_address, name, dst):
             for i in range(size):
                 file.write(chunks[str(i)])
             file.close()
+        elif command == ActionType.TRANSFER_COMPLETE.value:
+            print("Download completed")
     sock.close()

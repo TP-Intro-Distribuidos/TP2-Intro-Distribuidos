@@ -52,9 +52,10 @@ def receive_chunks(sock, address, number_of_chunks):
             number_of_bytes += len(chunk.encode())
             chunks[chunk_id] = chunk
     # This is to prevent border case where the last ack is lost, so the client keeps trying to retransmit the last chunk but the server is no longer listening for it.
-    response = send_message_with_retries(sock, address, (ActionType.DOWNLOAD_COMPLETE + DELIMITER + str(number_of_bytes)).encode())
+    response = send_message_with_retries(sock, address, (ActionType.TRANSFER_COMPLETE.value + DELIMITER + str(number_of_bytes)).encode())
     if response is None:
         chunks = None
+        return chunks
     print("Chunks received: {}. Bytes recevied: {}".format(len(chunks), number_of_bytes))
     sock.settimeout(original_timeout)
     return chunks
@@ -87,4 +88,5 @@ def transfer_file(sock, address, chunks):
             return False
         if data == ActionType.TRANSFER_COMPLETE:
             break
+    print ("Returning true")
     return True
