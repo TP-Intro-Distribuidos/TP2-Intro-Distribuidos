@@ -30,7 +30,7 @@ def receive_chunks(sock, address, number_of_chunks):
     chunks = {}
     number_of_bytes = 0
     last_chunk_confirmed = False
-    while (len(chunks) < int(number_of_chunks) or not last_chunk_confirmed):
+    while (len(chunks) < int(number_of_chunks) and not last_chunk_confirmed):
         try:
             response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
             chunk_id, chunk = response.decode().split(DELIMITER, 1)
