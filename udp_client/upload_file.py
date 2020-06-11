@@ -27,5 +27,6 @@ def upload_file(server_address, src, name):
                 print("Upload failed.")
         else:
             print('File upload failed: received unknown response from server to the upload command. Response was {}'.format(response))
-
+    else:
+        print("Error: File not found at", src)
     sock.close()
