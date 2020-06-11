@@ -2,7 +2,7 @@ import socket
 
 from utils.ActionType import ActionType
 from utils.MessagingUtils import UDP_CHAR_LIMIT, DELIMITER, break_file_into_chunks, transfer_file, receive_chunks
-from utils.FileUtils import check_file_exists_on_dir, delete_file
+from utils.FileUtils import check_file_exists_on_dir, delete_file, create_directory
 
 
 def start_server(server_address, storage_dir):
@@ -49,6 +49,8 @@ def upload(sock, address, storage_dir, file_info):
     if chunks is None:
         print("There was a problem receiving the file.")
         return
+
+    create_directory(storage_dir)
 
     if check_file_exists_on_dir(storage_dir, filename):
         # If file already exists => delete it

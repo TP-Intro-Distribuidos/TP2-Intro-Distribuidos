@@ -3,7 +3,7 @@ import os
 import utils.ActionType as ActionType
 from socket import error as SocketError
 
-from utils.FileUtils import check_file_exists, check_file_exists_on_dir, delete_file
+from utils.FileUtils import check_file_exists, check_file_exists_on_dir, delete_file, create_directory
 
 CHUNK_SIZE = 1024
 
@@ -78,6 +78,8 @@ def start_upload(connection, storage_dir):
     # Read server name and send "ACK"
     filename = connection.recv(CHUNK_SIZE).decode()
     connection.send(b'ack')
+
+    create_directory(storage_dir)
 
     if check_file_exists_on_dir(storage_dir, filename):
         # If file already exists => delete it
