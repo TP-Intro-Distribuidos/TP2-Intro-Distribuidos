@@ -29,7 +29,8 @@ def receive_chunks(sock, address, number_of_chunks):
     sock.settimeout(5)
     chunks = {}
     number_of_bytes = 0
-    while len(chunks) < int(number_of_chunks):
+    last_chunk_confirmed = False
+    while (len(chunks) < int(number_of_chunks) or not last_chunk_confirmed):
         try:
             response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
             chunk_id, chunk = response.decode().split(DELIMITER, 1)
@@ -38,9 +39,12 @@ def receive_chunks(sock, address, number_of_chunks):
             continue
         except timeout:
             print("Stopped receiving data from client {}. Aborting reception.".format(address))
-            chunks = None
             sock.settimeout(original_timeout)
             return
+        if chunk_id == ActionType.TRANSFER_COMPLETE:
+            # This is to prevent border case where the last ack is lost, so the client keeps trying to retransmit the last chunk but the server is no longer listening for it.
+            last_chunk_confirmed = True
+            sock.sendto(("ACK" + DELIMITER + chunk_id).encode(), address)
         if not chunk_id.isdigit():
             print("Parsed a chunk id that was not numeric. Aborting reception. Chunk id was {}".format(response))
             chunks = None
@@ -51,8 +55,6 @@ def receive_chunks(sock, address, number_of_chunks):
         if chunk_id not in chunks:
             number_of_bytes += len(chunk.encode())
             chunks[chunk_id] = chunk
-    # This is to prevent border case where the last ack is lost, so the client keeps trying to retransmit the last chunk but the server is no longer listening for it.
-    response = send_message_with_retries(sock, address, (ActionType.TRANSFER_COMPLETE.value + DELIMITER + str(number_of_bytes)).encode())
     if response is None:
         chunks = None
         return chunks
@@ -81,12 +83,5 @@ def transfer_file(sock, address, chunks):
         if response is None:
             print("There was a problem transferring chunks to {}".format(address))
             return False
-        try:
-            data, chunk_id = response.split(DELIMITER, 1)
-        except ValueError:
-            print("Could not parse ack. Response was {}".format(response))
-            return False
-        if data == ActionType.TRANSFER_COMPLETE:
-            break
-    print ("Returning true")
+    send_message_with_retries(sock, address, (ActionType.TRANSFER_COMPLETE.value + DELIMITER + 1).encode())
     return True
