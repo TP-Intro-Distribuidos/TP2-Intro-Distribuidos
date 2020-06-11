@@ -23,7 +23,7 @@ def download_file(server_address, name, dst):
             print("Unrecognized response from server: {}".format(response))
             sock.close()
             return
-        if command == ActionType.FILE_NOT_FOUND:
+        if command == ActionType.FILE_NOT_FOUND.value:
             print("Server responded with file not found. Please verify the filename and retry.")
         elif command == ActionType.BEGIN_DOWNLOAD.value:
             print("Begin Download command received from server: starting download")
