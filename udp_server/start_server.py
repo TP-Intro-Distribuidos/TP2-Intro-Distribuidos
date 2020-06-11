@@ -79,4 +79,4 @@ def download(sock, address, storage_dir, file_info):
     if transfer_file(sock, address, chunks):
         print("Download completed for file {}".format(filename))
     else:
-        print("Download failed")
+        print("Client stopped receiving data. File transfer failed.")
