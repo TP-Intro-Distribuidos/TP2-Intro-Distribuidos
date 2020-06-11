@@ -39,7 +39,13 @@ def upload_file(server_address, src, name):
         chunk = f.read(CHUNK_SIZE)
         if not chunk:
             break
-        sock.send(chunk)
+        try:
+            sock.send(chunk)
+        except socket.error:
+            print('Error. Connection with server lost')
+            f.close()
+            sock.close()
+            return
 
     # Recv amount of data received by the server
     num_bytes = sock.recv(CHUNK_SIZE)

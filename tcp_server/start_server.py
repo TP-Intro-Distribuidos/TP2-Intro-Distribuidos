@@ -98,6 +98,7 @@ def start_upload(connection, storage_dir):
 
         # Getting an empty byte means that the connection was closed by the client => delete file and close socket.
         if data == b'':
+            print('Conection closed by client -> aborting')
             close_connection(connection)
             close_file(f)
             return
