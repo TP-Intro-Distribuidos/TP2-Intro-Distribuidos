@@ -46,7 +46,4 @@ def download_file(server_address, name, dst):
             for i in range(size):
                 file.write(chunks[str(i)])
             file.close()
-        elif command == ActionType.TRANSFER_COMPLETE.value:
-            print("Download completed")
-            sock.sendto((ActionType.DATA + DELIMITER + str(1)).encode(), server_address)
     sock.close()
