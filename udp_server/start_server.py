@@ -27,8 +27,6 @@ def start_server(server_address, storage_dir):
             upload(sock, client_address, storage_dir, file_info)
         elif command == ActionType.DOWNLOAD.value:
             download(sock, client_address, storage_dir, file_info)
-        elif command == ActionType.TRANSFER_COMPLETE.value:
-            sock.sendto(ActionType.TRANSFER_COMPLETE.value.encode(), client_address)
         else:
             print("Command {} not recognized".format(command))
             continue
