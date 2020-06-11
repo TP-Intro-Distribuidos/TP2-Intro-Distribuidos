@@ -45,9 +45,8 @@ def receive_chunks(sock, address, number_of_chunks):
             # This is to prevent border case where the last ack is lost, so the client keeps trying to retransmit the last chunk but the server is no longer listening for it.
             last_chunk_confirmed = True
             sock.sendto(("ACK" + DELIMITER + chunk_id).encode(), address)
-        if not chunk_id.isdigit():
+        elif not chunk_id.isdigit():
             print("Parsed a chunk id that was not numeric. Aborting reception. Chunk id was {}".format(response))
-            chunks = None
             sock.settimeout(original_timeout)
             return
         # Send ack (we do not care if chunk is new or repeated for ack)
@@ -83,5 +82,5 @@ def transfer_file(sock, address, chunks):
         if response is None:
             print("There was a problem transferring chunks to {}".format(address))
             return False
-    send_message_with_retries(sock, address, (ActionType.TRANSFER_COMPLETE.value + DELIMITER + 1).encode())
+    send_message_with_retries(sock, address, (ActionType.TRANSFER_COMPLETE.value + DELIMITER + str(1)).encode())
     return True
