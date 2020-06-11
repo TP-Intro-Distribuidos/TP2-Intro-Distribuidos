@@ -34,6 +34,7 @@ def receive_chunks(sock, address, number_of_chunks):
         try:
             response, addr = sock.recvfrom(UDP_CHAR_LIMIT * 4)
             chunk_id, chunk = response.decode().split(DELIMITER, 1)
+            print(chunk_id)
         except ValueError:
             print("Could not parse data chunk. Maybe it got corrupted. Message was {}".format(response.decode()))
             continue
@@ -45,6 +46,7 @@ def receive_chunks(sock, address, number_of_chunks):
             # This is to prevent border case where the last ack is lost, so the client keeps trying to retransmit the last chunk but the server is no longer listening for it.
             last_chunk_confirmed = True
             sock.sendto(("ACK" + DELIMITER + chunk_id).encode(), address)
+            continue
         elif not chunk_id.isdigit():
             print("Parsed a chunk id that was not numeric. Aborting reception. Chunk id was {}".format(response))
             sock.settimeout(original_timeout)
